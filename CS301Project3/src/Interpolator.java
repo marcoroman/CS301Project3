@@ -34,10 +34,12 @@ public class Interpolator {
 		//Generating the divided differences based on input data
 		createDividedDifferenceTable(dividedDifferenceTable);
 		
-		//Test display of values
+		//Test display of values to output file
 		for(int i = 0; i < dividedDifferenceTable.size(); ++i){
-			System.out.println(Arrays.toString(dividedDifferenceTable.get(i).toArray()));
+			writer.println(Arrays.toString(dividedDifferenceTable.get(i).toArray()));
 		}
+		
+		writer.close();
 	}
 	
 	public static void createDividedDifferenceTable(ArrayList<ArrayList<Float>> table){
