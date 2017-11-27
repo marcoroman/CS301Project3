@@ -21,34 +21,35 @@ public class Interpolator {
 		
 		reader.close();
 		
-		ArrayList<Float> xValues = new ArrayList<>();
-		ArrayList<Float> functionValues = new ArrayList<>();
-		
-		//Splitting values of x from corresponding functional values
-		xValues.addAll(0, data.subList(0, data.size() / 2));
-		functionValues.addAll(0, data.subList(data.size() / 2, data.size()));
-		
 		ArrayList<ArrayList<Float>> dividedDifferenceTable = new ArrayList<>();
-		//dividedDifferenceTable.add(new ArrayList<Float>());
-		dividedDifferenceTable = createDividedDifferenceTable(xValues, functionValues);
 		
+		//First ArrayList in the table stores x values
+		dividedDifferenceTable.add(new ArrayList<Float>());
+		dividedDifferenceTable.get(0).addAll(0, data.subList(0, data.size() / 2));
+		
+		//Second ArrayList in the table stores functional values
+		dividedDifferenceTable.add(new ArrayList<Float>());
+		dividedDifferenceTable.get(1).addAll(0, data.subList(data.size() / 2, data.size()));
+		
+		//Generating the divided differences based on input data
+		createDividedDifferenceTable(dividedDifferenceTable);
+		
+		//Test display of values
 		for(int i = 0; i < dividedDifferenceTable.size(); ++i){
 			System.out.println(Arrays.toString(dividedDifferenceTable.get(i).toArray()));
 		}
 	}
 	
-	public static ArrayList<ArrayList<Float>> createDividedDifferenceTable(ArrayList<Float> x, ArrayList<Float> fx){
-		ArrayList<ArrayList<Float>> table = new ArrayList<>();
-		table.add(fx);
+	public static void createDividedDifferenceTable(ArrayList<ArrayList<Float>> table){
 		
-		for(int i = 0; i < x.size() - 1; ++i){
+		for(int i = 0; i < table.get(0).size() - 1; ++i){
 			table.add(new ArrayList<Float>());
 			
-			for(int j = 0; j < x.size() - (i + 1); ++j){
-				table.get(table.size() - 1).add((table.get(i).get(j + 1) - table.get(i).get(j)) / (x.get(j + (i + 1)) - x.get(j)));
+			//Divided difference calculation
+			for(int j = 0; j < table.get(0).size() - (i + 1); ++j){
+				table.get(table.size() - 1).add((table.get(i + 1).get(j + 1) - table.get(i + 1).get(j)) / 
+						(table.get(0).get(j + (i + 1)) - table.get(0).get(j)));
 			}
 		}
-		
-		return table;
 	}
 }
