@@ -35,13 +35,20 @@ public class Interpolator {
 		createDividedDifferenceTable(dividedDifferenceTable);
 		
 		//Test display of values to output file
-		for(int i = 0; i < dividedDifferenceTable.size(); ++i){
+		for(int i = 0; i < dividedDifferenceTable.size(); ++i)
 			writer.println(Arrays.toString(dividedDifferenceTable.get(i).toArray()));
-		}
+		
+		//Display of interpolating polynomial to output file
+		writer.println("\nInterpolating polynomial is:");
+		writer.println(display(dividedDifferenceTable));
+		
+		//Display of simplified interpolating polynomial to output file
+		writer.println("\nSimplified polynomial is:");
 		
 		writer.close();
 	}
 	
+	//Divided difference table stored as an ArrayList of ArrayLists
 	public static void createDividedDifferenceTable(ArrayList<ArrayList<Float>> table){
 		
 		for(int i = 0; i < table.get(0).size() - 1; ++i){
@@ -53,5 +60,37 @@ public class Interpolator {
 						(table.get(0).get(j + (i + 1)) - table.get(0).get(j)));
 			}
 		}
+	}
+	
+	//Storing the interpolating polynomial before simplification as a string
+	public static String display(ArrayList<ArrayList<Float>> table){
+		String polynomial = "";
+		
+		for(int i = 1; i < table.size(); ++i){
+			
+			//Determining sign of coefficient
+			if(table.get(i).get(0) < 0 && i != 1)
+				polynomial += " - ";
+			else if(table.get(i).get(0) > 0 && i != 1){
+				polynomial += " + ";
+			}
+			
+			if(table.get(i).get(0) != 0){
+				polynomial += Math.abs(table.get(i).get(0));
+			
+				//Generating appropriate x values
+				for(int j = 0; j < i - 1; ++j){
+					if(table.get(0).get(j) == 0){
+						polynomial += "x";
+					}else if(table.get(0).get(j) > 0){
+						polynomial += "(x - " + Math.abs(table.get(0).get(j)) + ")";
+					}else{
+						polynomial += "(x + " + Math.abs(table.get(0).get(j)) + ")";
+					}
+				}
+			}
+		}
+		
+		return polynomial;
 	}
 }
