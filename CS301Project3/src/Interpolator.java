@@ -32,6 +32,15 @@ public class Interpolator {
 		
 		Polynomial product = p1.multiply(p2);
 		System.out.println(product);
+		
+		Polynomial p3 = new Polynomial();
+		p3.addTerm(1);
+		p3.setPower(0, 1);
+		p3.addTerm(-2);
+		p3.setPower(1, 0);
+		
+		Polynomial product2 = product.multiply(p3);
+		System.out.println(product2);
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
@@ -70,7 +79,7 @@ public class Interpolator {
 	
 	//Storing the interpolating polynomial before simplification as a string
 	public static String generatePolynomial(ArrayList<ArrayList<Float>> table){
-		String polynomial = "";
+		String polynomial = "f(x) = ";
 		
 		for(int i = 1; i < table.size(); ++i){
 			
@@ -185,19 +194,27 @@ final class Polynomial{
 	}
 	
 	public String toString(){
-		String str = "";
+		String str = "f(x) = ";
 		
 		for(int i = 0; i < terms.size(); ++i){
-			//if(terms.get(i) != 0){
-				str += terms.get(i);
+			if(terms.get(i) != 0){
+				
+				if(terms.get(i) < 0 && i != 0){
+					str += " - ";
+				}else if(terms.get(i) > 0 && i != 0){
+					str += " + ";
+				}
+				
+				if(Math.abs(terms.get(i)) != 1)
+					str += Math.abs(terms.get(i));
 				
 				if(xPowers.get(i) > 0){
 					if(xPowers.get(i) == 1){
-						str += "x ";
+						str += "x";
 					}else
-						str += "x^" + xPowers.get(i) + " ";
+						str += "x^" + xPowers.get(i);
 				}
-			//}
+			}
 		}
 		
 		return str;
