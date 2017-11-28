@@ -11,9 +11,27 @@ public class Interpolator {
 		ArrayList<ArrayList<Float>> dividedDifferenceTable = new ArrayList<>();
 		
 		//Generating the divided differences based on input data
-		createDividedDifferenceTable(dividedDifferenceTable);
+		//createDividedDifferenceTable(dividedDifferenceTable);
 
-		display(dividedDifferenceTable);
+		//display(dividedDifferenceTable);
+		
+		Polynomial p1 = new Polynomial();
+		Polynomial p2 = new Polynomial();
+		
+		p1.addTerm(1);
+		p1.setPower(0, 1);
+		p1.addTerm(1);
+		p1.setPower(1, 0);
+		
+		p2.addTerm(1);
+		p2.setPower(0, 2);
+		p2.addTerm(1);
+		p2.setPower(1, 1);
+		p2.addTerm(2);
+		p2.setPower(2, 0);
+		
+		Polynomial product = p1.multiply(p2);
+		System.out.println(product);
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
@@ -98,5 +116,68 @@ public class Interpolator {
 		writer.println("\nSimplified polynomial is:");
 		
 		writer.close();
+	}
+}
+
+final class Polynomial{
+	private ArrayList<Double> terms;
+	private ArrayList<Integer> xPowers;
+	
+	public Polynomial(){
+		terms = new ArrayList<>();
+		xPowers = new ArrayList<>();
+	}
+	
+	public ArrayList<Double> getTermSet(){
+		return terms;
+	}
+	
+	public ArrayList<Integer> getPowerSet(){
+		return xPowers;
+	}
+	
+	public double getTerm(int index){
+		return terms.get(index);
+	}
+	
+	public int getPower(int index){
+		return xPowers.get(index);
+	}
+	
+	public void addTerm(double t){
+		terms.add(t);
+		xPowers.add(0);
+	}
+	
+	public void setPower(int index, int p){
+		xPowers.set(index, p);
+	}
+	
+	public Polynomial multiply(Polynomial p2){
+		Polynomial product = new Polynomial();
+		
+		//Generating product polynomial 
+		for(int i = 0; i < terms.size(); ++i){
+			for(int j = 0; j < p2.getTermSet().size(); ++j){
+				product.addTerm(terms.get(i) * p2.getTerm(j));
+				product.setPower(j + (p2.getTermSet().size() * i), xPowers.get(i) + p2.getPower(j));
+			}
+		}
+		
+		return product;
+	}
+	
+	public String toString(){
+		String str = "";
+		
+		for(int i = 0; i < terms.size(); ++i)
+			str += terms.get(i) + " ";
+		
+		str += "\n";
+		
+		for(int i = 0; i < terms.size(); ++i)
+			str += xPowers.get(i) + " ";
+		
+		return str;
 	}
 }
