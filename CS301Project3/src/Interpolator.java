@@ -164,19 +164,41 @@ final class Polynomial{
 			}
 		}
 		
+		product.combineLikeTerms();
+		
 		return product;
+	}
+	
+	//Simplifying the polynomial by combining like terms
+	public void combineLikeTerms(){
+		for(int i = 0; i < terms.size(); ++i){
+			for(int j = 0; j < terms.size(); ++j){
+				if(i != j){
+					if(xPowers.get(i) == xPowers.get(j)){
+						terms.set(i, terms.get(i) + terms.get(j));
+						terms.remove(j);
+						xPowers.remove(j);
+					}
+				}
+			}
+		}
 	}
 	
 	public String toString(){
 		String str = "";
 		
-		for(int i = 0; i < terms.size(); ++i)
-			str += terms.get(i) + " ";
-		
-		str += "\n";
-		
-		for(int i = 0; i < terms.size(); ++i)
-			str += xPowers.get(i) + " ";
+		for(int i = 0; i < terms.size(); ++i){
+			//if(terms.get(i) != 0){
+				str += terms.get(i);
+				
+				if(xPowers.get(i) > 0){
+					if(xPowers.get(i) == 1){
+						str += "x ";
+					}else
+						str += "x^" + xPowers.get(i) + " ";
+				}
+			//}
+		}
 		
 		return str;
 	}
