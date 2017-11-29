@@ -73,7 +73,7 @@ public class Interpolator{
 		
 		ArrayList<Float> data = new ArrayList<>();
 		
-		//Reading all values from input file
+		//Reading all values from given input file
 		while(reader.hasNext())
 			data.add(reader.nextFloat());
 		
