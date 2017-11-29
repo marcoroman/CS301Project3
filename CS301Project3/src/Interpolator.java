@@ -1,21 +1,30 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Interpolator {
+	static DecimalFormat decimalFormat = new DecimalFormat("#.####");
+	
 	public static void main(String[] args) throws FileNotFoundException{
 		
 		ArrayList<ArrayList<Float>> dividedDifferenceTable = new ArrayList<>();
 		
 		//Generating the divided differences based on input data
-		//createDividedDifferenceTable(dividedDifferenceTable);
-
-		//display(dividedDifferenceTable);
+		createDividedDifferenceTable(dividedDifferenceTable);
+		//String polynomial = generatePolynomial(dividedDifferenceTable);
 		
-		Polynomial p1 = new Polynomial();
+		//System.out.println(polynomial);
+		
+		//polynomial = polynomial.substring(7, polynomial.length() - 1);
+		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
+		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
+		//System.out.println(Arrays.toString(p));
+		display(dividedDifferenceTable);
+		
+		/*Polynomial p1 = new Polynomial();
 		Polynomial p2 = new Polynomial();
 		
 		p1.addTerm(1);
@@ -40,7 +49,7 @@ public class Interpolator {
 		p3.setPower(1, 0);
 		
 		Polynomial product2 = product.multiply(p3);
-		System.out.println(product2);
+		System.out.println(product2);*/
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
@@ -98,9 +107,9 @@ public class Interpolator {
 					if(table.get(0).get(j) == 0){
 						polynomial += "x";
 					}else if(table.get(0).get(j) > 0){
-						polynomial += "(x - " + Math.abs(table.get(0).get(j)) + ")";
+						polynomial += "(x-" + Math.abs(table.get(0).get(j)) + ")";
 					}else{
-						polynomial += "(x + " + Math.abs(table.get(0).get(j)) + ")";
+						polynomial += "(x+" + Math.abs(table.get(0).get(j)) + ")";
 					}
 				}
 			}
@@ -113,9 +122,29 @@ public class Interpolator {
 		File outputFile = new File("output.txt");
 		PrintWriter writer = new PrintWriter(outputFile);
 		
-		//Test display of values to output file
-		for(int i = 0; i < table.size(); ++i)
-			writer.println(Arrays.toString(table.get(i).toArray()));
+		//Formatted display of divided difference table to output file
+		writer.printf("%-15s%-15s", "x", "fx");
+				
+		String header = " , ";
+		
+		//Printing appropriate column headers for DD table
+		for(int i = 2; i < table.size(); ++i){
+			writer.printf("%-15s", "f[" + header + "]");
+			header += ", ";
+		}
+				
+		writer.println();
+				
+		//Printing formatted values for DD table
+		for(int i = 0; i < table.get(0).size(); ++i){
+			for(int j = 0; j < table.size(); ++j){
+				if(table.get(j).size() > i){
+					writer.printf("%-15s", decimalFormat.format(table.get(j).get(i)));
+				}
+			}
+					
+			writer.println();
+		}
 				
 		//Display of interpolating polynomial to output file
 		writer.println("\nInterpolating polynomial is:");
