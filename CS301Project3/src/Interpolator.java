@@ -5,11 +5,14 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Interpolator {
+public class Interpolator{
 	static DecimalFormat decimalFormat = new DecimalFormat("#.####");
+	static File outputFile = new File("output.txt");
+	static PrintWriter writer;
 	
 	public static void main(String[] args) throws FileNotFoundException{
 		
+		writer = new PrintWriter(outputFile);
 		ArrayList<ArrayList<Float>> dividedDifferenceTable = new ArrayList<>();
 		
 		//Generating the divided differences based on input data
@@ -22,7 +25,16 @@ public class Interpolator {
 		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
 		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
 		//System.out.println(Arrays.toString(p));
-		display(dividedDifferenceTable);
+		displayTable(dividedDifferenceTable);
+		
+		//Display of interpolating polynomial to output file
+		writer.println("\nInterpolating polynomial is:");
+		writer.println(generatePolynomial(dividedDifferenceTable));
+						
+		//Display of simplified interpolating polynomial to output file
+		writer.println("\nSimplified polynomial is:");
+				
+		writer.close();
 		
 		/*Polynomial p1 = new Polynomial();
 		Polynomial p2 = new Polynomial();
@@ -86,6 +98,34 @@ public class Interpolator {
 		}
 	}
 	
+	//Prints the formatted divided difference table to an output file
+	public static void displayTable(ArrayList<ArrayList<Float>> table) throws FileNotFoundException{
+		
+		//Formatted display of divided difference table to output file
+		writer.printf("%-15s%-15s", "x", "fx");
+				
+		String header = " , ";
+		
+		//Printing appropriate column headers for DD table
+		for(int i = 2; i < table.size(); ++i){
+			writer.printf("%-15s", "f[" + header + "]");
+			header += ", ";
+		}
+				
+		writer.println();
+				
+		//Printing formatted values for DD table
+		for(int i = 0; i < table.get(0).size(); ++i){
+			for(int j = 0; j < table.size(); ++j){
+				if(table.get(j).size() > i){
+					writer.printf("%-15s", decimalFormat.format(table.get(j).get(i)));
+				}
+			}
+					
+			writer.println();
+		}
+	}
+	
 	//Storing the interpolating polynomial before simplification as a string
 	public static String generatePolynomial(ArrayList<ArrayList<Float>> table){
 		String polynomial = "f(x) = ";
@@ -116,44 +156,6 @@ public class Interpolator {
 		}
 		
 		return polynomial;
-	}
-	
-	public static void display(ArrayList<ArrayList<Float>> table) throws FileNotFoundException{
-		File outputFile = new File("output.txt");
-		PrintWriter writer = new PrintWriter(outputFile);
-		
-		//Formatted display of divided difference table to output file
-		writer.printf("%-15s%-15s", "x", "fx");
-				
-		String header = " , ";
-		
-		//Printing appropriate column headers for DD table
-		for(int i = 2; i < table.size(); ++i){
-			writer.printf("%-15s", "f[" + header + "]");
-			header += ", ";
-		}
-				
-		writer.println();
-				
-		//Printing formatted values for DD table
-		for(int i = 0; i < table.get(0).size(); ++i){
-			for(int j = 0; j < table.size(); ++j){
-				if(table.get(j).size() > i){
-					writer.printf("%-15s", decimalFormat.format(table.get(j).get(i)));
-				}
-			}
-					
-			writer.println();
-		}
-				
-		//Display of interpolating polynomial to output file
-		writer.println("\nInterpolating polynomial is:");
-		writer.println(generatePolynomial(table));
-				
-		//Display of simplified interpolating polynomial to output file
-		writer.println("\nSimplified polynomial is:");
-		
-		writer.close();
 	}
 }
 
