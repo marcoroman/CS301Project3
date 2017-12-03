@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Interpolator{
@@ -17,15 +18,42 @@ public class Interpolator{
 		
 		//Generating the divided differences based on input data
 		createDividedDifferenceTable(dividedDifferenceTable);
-		//String polynomial = generatePolynomial(dividedDifferenceTable);
+		String polynomial = generatePolynomial(dividedDifferenceTable);
 		
-		//System.out.println(polynomial);
+		/*****************************Beginning Polynomial Separation********************************/
+		System.out.println(polynomial);
 		
-		//polynomial = polynomial.substring(7, polynomial.length() - 1);
-		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
-		//String[] p = polynomial.split("\\s\\+\\s|\\s\\-\\s");
-		//System.out.println(Arrays.toString(p));
-		displayTable(dividedDifferenceTable);
+		polynomial = polynomial.substring(7, polynomial.length());
+		String[] p = polynomial.split("\\s\\+\\s|\\)\\s");
+		System.out.println(Arrays.toString(p));
+		
+		ArrayList<String[]> stringPolynomials = new ArrayList<>();
+		ArrayList<ArrayList<Double>> polynomials = new ArrayList<>();
+		
+		for(int i = 0; i < p.length; ++i){
+			stringPolynomials.add(p[i].split("\\)\\(|\\(|\\)"));
+			//System.out.println(Arrays.toString((polynomials.get(polynomials.size() - 1))));
+			polynomials.add(new ArrayList<>());
+			
+			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
+				if(!stringPolynomials.get(i)[j].contains("x")){
+					polynomials.get(polynomials.size() - 1).add(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", "")));
+				}else if(stringPolynomials.get(i)[j].contains("-")){
+					polynomials.get(polynomials.size() - 1).add(1.0);
+					polynomials.get(polynomials.size() - 1).add(-1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1]));
+				}else if(stringPolynomials.get(i)[j].contains("+")){
+					polynomials.get(polynomials.size() - 1).add(1.0);
+					polynomials.get(polynomials.size() - 1).add(Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1]));
+				}else
+					polynomials.get(polynomials.size() - 1).add(1.0);
+			}
+		}
+		
+		for(int i = 0; i < polynomials.size(); ++i){
+			System.out.println(Arrays.toString(polynomials.get(i).toArray()));
+		}
+		
+		//displayTable(dividedDifferenceTable);
 		
 		//Display of interpolating polynomial to output file
 		writer.println("\nInterpolating polynomial is:");
@@ -35,33 +63,6 @@ public class Interpolator{
 		writer.println("\nSimplified polynomial is:");
 				
 		writer.close();
-		
-		/*Polynomial p1 = new Polynomial();
-		Polynomial p2 = new Polynomial();
-		
-		p1.addTerm(1);
-		p1.setPower(0, 1);
-		p1.addTerm(1);
-		p1.setPower(1, 0);
-		
-		p2.addTerm(1);
-		p2.setPower(0, 2);
-		p2.addTerm(1);
-		p2.setPower(1, 1);
-		p2.addTerm(2);
-		p2.setPower(2, 0);
-		
-		Polynomial product = p1.multiply(p2);
-		System.out.println(product);
-		
-		Polynomial p3 = new Polynomial();
-		p3.addTerm(1);
-		p3.setPower(0, 1);
-		p3.addTerm(-2);
-		p3.setPower(1, 0);
-		
-		Polynomial product2 = product.multiply(p3);
-		System.out.println(product2);*/
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
@@ -126,7 +127,7 @@ public class Interpolator{
 		}
 	}
 	
-	//Storing the interpolating polynomial before simplification as a string
+	//Storing the interpolating polynomial (before simplification) as a string
 	public static String generatePolynomial(ArrayList<ArrayList<Float>> table){
 		String polynomial = "f(x) = ";
 		
