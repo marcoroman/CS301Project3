@@ -133,15 +133,14 @@ public class Interpolator{
 		return polynomial;
 	}
 	
-	//Generating the simplified polynomial based on string representation
-	//of original interpolating polynomial
+	//Generating the simplified polynomial based on divided difference table
 	public static void generateSimplifiedPolynomial(ArrayList<ArrayList<Float>> table){
 		
-		//Polynomial lists stores new Polynomial objects created from parsing doubles from difference table
+		//Polynomial lists stores new Polynomial objects created from difference table values
 		//Each sublist will then be consolidated into a single polynomial via multiplication
 		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
 		
-		//Generating polynomial clusters to be multiplied together based on difference table values
+		//Generating polynomial clusters to be multiplied together
 		for(int i = 1; i < table.size(); ++i){
 			polynomialLists.add(new ArrayList<>());
 			
