@@ -3,9 +3,13 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
+/*
+ * This class generates an interpolating polynomial based on input read from a file
+ * The polynomial is generated via Newton's divided difference method and is
+ * output to a text file in raw and simplified form.
+ * */
 public class Interpolator{
 	static DecimalFormat decimalFormat = new DecimalFormat("#.####");
 	static File outputFile = new File("output.txt");
@@ -28,59 +32,7 @@ public class Interpolator{
 						
 		//Display of simplified interpolating polynomial to output file
 		writer.println("\nSimplified polynomial is:");
-		
-		/*****************************Beginning Polynomial Separation********************************/
-		polynomial = polynomial.substring(7, polynomial.length());
-		String[] p = polynomial.split("\\s\\+\\s|\\)\\s");
-		
-		ArrayList<String[]> stringPolynomials = new ArrayList<>();
-		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
-		
-		for(int i = 0; i < p.length; ++i){
-			
-			stringPolynomials.add(p[i].split("\\)\\(|\\(|\\)"));
-			polynomialLists.add(new ArrayList<>());
-			
-			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
-				if(!stringPolynomials.get(i)[j].contains("x")){
-					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", ""))));
-				}else if(stringPolynomials.get(i)[j].contains("-")){
-					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, -1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1])));
-				}else if(stringPolynomials.get(i)[j].contains("+")){
-					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1])));
-				}else{
-					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1));
-				}
-			}
-			
-			Polynomial product;
-			
-			//Multiplying polynomial clusters
-			while(polynomialLists.get(i).size() > 1){
-				product = new Polynomial();
-				
-				product = polynomialLists.get(i).get(0).multiply(polynomialLists.get(i).get(1));
-				
-				polynomialLists.get(i).remove(1);
-				polynomialLists.get(i).remove(0);
-				polynomialLists.get(i).add(product);
-			}
-		}
-		
-		ArrayList<Polynomial> polynomials = new ArrayList<>();
-		
-		for(int i = 0; i < polynomialLists.size(); ++i){
-			polynomials.add(polynomialLists.get(i).get(0));
-		}
-		
-		//Add polynomial clusters
-		while(polynomials.size() > 1){
-			polynomials.add(new Polynomial(polynomials.get(0), polynomials.get(1)));
-			polynomials.remove(1);
-			polynomials.remove(0);
-		}
-		
-		writer.println(polynomials.get(0));
+		generateSimplifiedPolynomial(polynomial);
 				
 		writer.close();
 	}
@@ -178,8 +130,74 @@ public class Interpolator{
 		
 		return polynomial;
 	}
+	
+	//Generating the simplified polynomial based on string representation
+	//of original interpolating polynomial
+	public static void generateSimplifiedPolynomial(String polynomial){
+		
+		//Polynomial string split into clusters grouped by multiplication
+		polynomial = polynomial.substring(7, polynomial.length());
+		String[] clusters = polynomial.split("\\s\\+\\s|\\)\\s");
+		
+		//stringPolynomials stores string representations of expressions grouped by multiplication
+		//Polynomial lists stores new Polynomial objects created from parsing doubles from original strings
+		//Each sublist will then be consolidated into a single polynomial via multiplication
+		ArrayList<String[]> stringPolynomials = new ArrayList<>();
+		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
+		
+		for(int i = 0; i < clusters.length; ++i){
+			
+			//Extracting numbers from original string
+			stringPolynomials.add(clusters[i].split("\\)\\(|\\(|\\)"));
+			polynomialLists.add(new ArrayList<>());
+			
+			//Creating new polynomials based on term being parsed - 4 cases
+			//1) constant
+			//2) (x-constant)
+			//3) (x+constant)
+			//4) x
+			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
+				if(!stringPolynomials.get(i)[j].contains("x")){
+					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", ""))));
+				}else if(stringPolynomials.get(i)[j].contains("-")){
+					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, -1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1])));
+				}else if(stringPolynomials.get(i)[j].contains("+")){
+					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1])));
+				}else{
+					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1));
+				}
+			}
+			
+			//Consolidating polynomials by multiplying polynomial clusters
+			while(polynomialLists.get(i).size() > 1){
+				polynomialLists.get(i).add(polynomialLists.get(i).get(0).multiply(polynomialLists.get(i).get(1)));
+				polynomialLists.get(i).remove(1);
+				polynomialLists.get(i).remove(0);
+			}
+		}
+		
+		//Transferring polynomials from an ArrayList of ArrayLists
+		//to an ArrayList of Polynomials for ease of access
+		ArrayList<Polynomial> polynomials = new ArrayList<>();
+		
+		for(int i = 0; i < polynomialLists.size(); ++i){
+			polynomials.add(polynomialLists.get(i).get(0));
+		}
+		
+		//Consolidating polynomials by adding polynomial clusters
+		while(polynomials.size() > 1){
+			polynomials.add(new Polynomial(polynomials.get(0), polynomials.get(1)));
+			polynomials.remove(1);
+			polynomials.remove(0);
+		}
+		
+		//Final consolidated polynomial output to text file
+		writer.println(polynomials.get(0));
+	}
 }
 
+//Polynomial class used for the construction of simplified polynomial
+//Handles multiplication and addition functionality
 final class Polynomial{
 	private ArrayList<Double> terms;
 	private ArrayList<Integer> xPowers;
@@ -209,6 +227,7 @@ final class Polynomial{
 	}
 	
 	//Constructor for first order polynomial
+	//of form (x+c) or (x-c)
 	public Polynomial(int n, Double d){
 		terms = new ArrayList<>();
 		xPowers = new ArrayList<>();
@@ -258,6 +277,7 @@ final class Polynomial{
 		xPowers.set(index, p);
 	}
 	
+	//Returns a Polynomial product
 	public Polynomial multiply(Polynomial p2){
 		Polynomial product = new Polynomial();
 		
@@ -289,6 +309,7 @@ final class Polynomial{
 		}
 	}
 	
+	//Returns full formatted polynomial as a string
 	public String toString(){
 		String str = "f(x) = ";
 		
