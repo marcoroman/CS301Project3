@@ -22,7 +22,6 @@ public class Interpolator{
 		
 		//Generating the divided differences based on input data
 		createDividedDifferenceTable(dividedDifferenceTable);
-		String polynomial = generatePolynomial(dividedDifferenceTable);
 		
 		displayTable(dividedDifferenceTable);
 		
@@ -32,7 +31,7 @@ public class Interpolator{
 						
 		//Display of simplified interpolating polynomial to output file
 		writer.println("\nSimplified polynomial is:");
-		generateSimplifiedPolynomial(polynomial);
+		generateSimplifiedPolynomial(dividedDifferenceTable);
 				
 		writer.close();
 	}
@@ -46,8 +45,11 @@ public class Interpolator{
 		
 		ArrayList<Float> data = new ArrayList<>();
 		
+		int count = 0;
+		
 		//Reading all values from given input file
-		while(reader.hasNext())
+		//At most 50 nodes (50 x values + 50 f(x) values)
+		while(reader.hasNext() && count++ < 100)
 			data.add(reader.nextFloat());
 		
 		reader.close();
@@ -133,46 +135,27 @@ public class Interpolator{
 	
 	//Generating the simplified polynomial based on string representation
 	//of original interpolating polynomial
-	public static void generateSimplifiedPolynomial(String polynomial){
+	public static void generateSimplifiedPolynomial(ArrayList<ArrayList<Float>> table){
 		
-		//Polynomial string split into clusters grouped by multiplication
-		polynomial = polynomial.substring(7, polynomial.length());
-		String[] clusters = polynomial.split("\\s\\+\\s|\\)\\s");
-		
-		//stringPolynomials stores string representations of expressions grouped by multiplication
-		//Polynomial lists stores new Polynomial objects created from parsing doubles from original strings
+		//Polynomial lists stores new Polynomial objects created from parsing doubles from difference table
 		//Each sublist will then be consolidated into a single polynomial via multiplication
-		ArrayList<String[]> stringPolynomials = new ArrayList<>();
 		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
 		
-		for(int i = 0; i < clusters.length; ++i){
-			
-			//Extracting numbers from original string
-			stringPolynomials.add(clusters[i].split("\\)\\(|\\(|\\)"));
+		//Generating polynomial clusters to be multiplied together based on difference table values
+		for(int i = 1; i < table.size(); ++i){
 			polynomialLists.add(new ArrayList<>());
 			
-			//Creating new polynomials based on term being parsed - 4 cases
-			//1) constant
-			//2) (x-constant)
-			//3) (x+constant)
-			//4) x
-			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
-				if(!stringPolynomials.get(i)[j].contains("x")){
-					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", ""))));
-				}else if(stringPolynomials.get(i)[j].contains("-")){
-					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, -1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1])));
-				}else if(stringPolynomials.get(i)[j].contains("+")){
-					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1])));
-				}else{
-					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1));
-				}
-			}
+			polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial((double) table.get(i).get(0)));
+			
+			//Creating polynomials from input values of x
+			for(int j = 0; j < i - 1; ++j)
+				polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1, -1.0 * table.get(0).get(j)));
 			
 			//Consolidating polynomials by multiplying polynomial clusters
-			while(polynomialLists.get(i).size() > 1){
-				polynomialLists.get(i).add(polynomialLists.get(i).get(0).multiply(polynomialLists.get(i).get(1)));
-				polynomialLists.get(i).remove(1);
-				polynomialLists.get(i).remove(0);
+			while(polynomialLists.get(polynomialLists.size() - 1).size() > 1){
+				polynomialLists.get(polynomialLists.size() - 1).add(polynomialLists.get(polynomialLists.size() - 1).get(0).multiply(polynomialLists.get(polynomialLists.size() - 1).get(1)));
+				polynomialLists.get(polynomialLists.size() - 1).remove(1);
+				polynomialLists.get(polynomialLists.size() - 1).remove(0);
 			}
 		}
 		
@@ -311,31 +294,38 @@ final class Polynomial{
 	
 	//Returns full formatted polynomial as a string
 	public String toString(){
-		String str = "f(x) = ";
+		String polyString = "f(x) = ";
 		
+		//Constructing polynomial based on coefficients and powers of x
 		for(int i = 0; i < terms.size(); ++i){
 			if(terms.get(i) != 0){
 				
+				//Determining appropriate arithmetic operation
 				if(terms.get(i) < 0 && i != 0){
-					str += " - ";
+					polyString += " - ";
 				}else if(terms.get(i) > 0 && i != 0){
-					str += " + ";
+					polyString += " + ";
 				}
 				
-				if(Math.abs(terms.get(i)) != 1 && i != 0){
-					str += Math.abs(terms.get(i));
-				}else
-					str += terms.get(i);
+				//x-coefficient of 1 not displayed (trivial)
+				if(!(Math.abs(terms.get(i)) == 1 && xPowers.get(i) == 1)){
+					if(i != 0){
+						polyString += Math.abs(terms.get(i));
+					}else if(i == 0){
+						polyString += terms.get(i);
+					}
+				}
 				
+				//Appending appropriate power of x
 				if(xPowers.get(i) > 0){
 					if(xPowers.get(i) == 1){
-						str += "x";
+						polyString += "x";
 					}else
-						str += "x^" + xPowers.get(i);
+						polyString += "x^" + xPowers.get(i);
 				}
 			}
 		}
 		
-		return str;
+		return polyString;
 	}
 }
