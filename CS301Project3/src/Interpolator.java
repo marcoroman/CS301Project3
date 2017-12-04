@@ -107,7 +107,7 @@ public class Interpolator{
 		
 		for(int i = 1; i < table.size(); ++i){
 			
-			//Determining sign of coefficient
+			//Determining appropriate arithmetic sign between terms
 			if(table.get(i).get(0) < 0 && i != 1)
 				polynomial += " - ";
 			else if(table.get(i).get(0) > 0 && i != 1){
@@ -115,7 +115,10 @@ public class Interpolator{
 			}
 			
 			if(table.get(i).get(0) != 0){
-				polynomial += decimalFormat.format(Math.abs(table.get(i).get(0)));
+				
+				//Coefficient of 1 not displayed unless it is a constant
+				if(table.get(i).get(0) != 1 || i == 1)
+					polynomial += decimalFormat.format(Math.abs(table.get(i).get(0)));
 			
 				//Generating appropriate x values
 				for(int j = 0; j < i - 1; ++j){
@@ -136,45 +139,42 @@ public class Interpolator{
 	//Generating the simplified polynomial based on divided difference table
 	public static void generateSimplifiedPolynomial(ArrayList<ArrayList<Float>> table){
 		
-		//Polynomial lists stores new Polynomial objects created from difference table values
-		//Each sublist will then be consolidated into a single polynomial via multiplication
-		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
+		//multiplicativeCluster list stores new Polynomial objects created from difference table values
+		//	each cluster is consolidated by multiplication
+		//Each consolidated cluster is added to additiveCluster; this list of polynomials
+		//	is consolidated by addition
+		ArrayList<Polynomial> multiplicativeCluster;
+		ArrayList<Polynomial> additiveCluster = new ArrayList<>();
 		
 		//Generating polynomial clusters to be multiplied together
 		for(int i = 1; i < table.size(); ++i){
-			polynomialLists.add(new ArrayList<>());
+			multiplicativeCluster = new ArrayList<>();
 			
-			polynomialLists.get(i - 1).add(new Polynomial(table.get(i).get(0)));
+			multiplicativeCluster.add(new Polynomial(table.get(i).get(0)));
 			
 			//Creating polynomials from input values of x
 			for(int j = 0; j < i - 1; ++j)
-				polynomialLists.get(i - 1).add(new Polynomial(1, (float) -1.0 * table.get(0).get(j)));
+				multiplicativeCluster.add(new Polynomial(1, (float) -1.0 * table.get(0).get(j)));
 			
 			//Consolidating polynomials by multiplying polynomial clusters
-			while(polynomialLists.get(i - 1).size() > 1){
-				polynomialLists.get(i - 1).add(polynomialLists.get(i - 1).get(0).multiply(polynomialLists.get(i - 1).get(1)));
-				polynomialLists.get(i - 1).remove(1);
-				polynomialLists.get(i - 1).remove(0);
+			while(multiplicativeCluster.size() > 1){
+				multiplicativeCluster.add(multiplicativeCluster.get(0).multiply(multiplicativeCluster.get(1)));
+				multiplicativeCluster.remove(1);
+				multiplicativeCluster.remove(0);
 			}
-		}
-		
-		//Transferring polynomials from an ArrayList of ArrayLists
-		//to an ArrayList of Polynomials for ease of access
-		ArrayList<Polynomial> polynomials = new ArrayList<>();
-		
-		for(int i = 0; i < polynomialLists.size(); ++i){
-			polynomials.add(polynomialLists.get(i).get(0));
+			
+			additiveCluster.add(multiplicativeCluster.get(0));
 		}
 		
 		//Consolidating polynomials by adding polynomial clusters
-		while(polynomials.size() > 1){
-			polynomials.add(new Polynomial(polynomials.get(0), polynomials.get(1)));
-			polynomials.remove(1);
-			polynomials.remove(0);
+		while(additiveCluster.size() > 1){
+			additiveCluster.add(new Polynomial(additiveCluster.get(0), additiveCluster.get(1)));
+			additiveCluster.remove(1);
+			additiveCluster.remove(0);
 		}
 		
 		//Final consolidated polynomial output to text file
-		writer.println(polynomials.get(0));
+		writer.println(additiveCluster.get(0));
 	}
 }
 
@@ -308,7 +308,7 @@ final class Polynomial{
 				}
 				
 				//x-coefficient of 1 not displayed (trivial)
-				if(!(Math.abs(terms.get(i)) == 1 && xPowers.get(i) == 1)){
+				if(!(Math.abs(terms.get(i)) == 1 && xPowers.get(i) > 0)){
 					if(i != 0){
 						polyString += decimalFormat.format(Math.abs(terms.get(i)));
 					}else if(i == 0){
