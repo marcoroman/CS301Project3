@@ -145,17 +145,17 @@ public class Interpolator{
 		for(int i = 1; i < table.size(); ++i){
 			polynomialLists.add(new ArrayList<>());
 			
-			polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial((double) table.get(i).get(0)));
+			polynomialLists.get(i - 1).add(new Polynomial(table.get(i).get(0)));
 			
 			//Creating polynomials from input values of x
 			for(int j = 0; j < i - 1; ++j)
-				polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1, -1.0 * table.get(0).get(j)));
+				polynomialLists.get(i - 1).add(new Polynomial(1, (float) -1.0 * table.get(0).get(j)));
 			
 			//Consolidating polynomials by multiplying polynomial clusters
-			while(polynomialLists.get(polynomialLists.size() - 1).size() > 1){
-				polynomialLists.get(polynomialLists.size() - 1).add(polynomialLists.get(polynomialLists.size() - 1).get(0).multiply(polynomialLists.get(polynomialLists.size() - 1).get(1)));
-				polynomialLists.get(polynomialLists.size() - 1).remove(1);
-				polynomialLists.get(polynomialLists.size() - 1).remove(0);
+			while(polynomialLists.get(i - 1).size() > 1){
+				polynomialLists.get(i - 1).add(polynomialLists.get(i - 1).get(0).multiply(polynomialLists.get(i - 1).get(1)));
+				polynomialLists.get(i - 1).remove(1);
+				polynomialLists.get(i - 1).remove(0);
 			}
 		}
 		
@@ -182,7 +182,7 @@ public class Interpolator{
 //Polynomial class used for the construction of simplified polynomial
 //Handles multiplication and addition functionality
 final class Polynomial{
-	private ArrayList<Double> terms;
+	private ArrayList<Float> terms;
 	private ArrayList<Integer> xPowers;
 	static DecimalFormat decimalFormat = new DecimalFormat("#.###");
 	
@@ -193,7 +193,7 @@ final class Polynomial{
 	}
 	
 	//Constructor for constants
-	public Polynomial(Double d){
+	public Polynomial(Float d){
 		terms = new ArrayList<>();
 		xPowers = new ArrayList<>();
 		
@@ -206,17 +206,17 @@ final class Polynomial{
 		terms = new ArrayList<>();
 		xPowers = new ArrayList<>();
 		
-		terms.add(1.0);
+		terms.add((float) 1.0);
 		xPowers.add(p);
 	}
 	
 	//Constructor for first order polynomial
 	//of form (x+c) or (x-c)
-	public Polynomial(int n, Double d){
+	public Polynomial(int n, Float d){
 		terms = new ArrayList<>();
 		xPowers = new ArrayList<>();
 		
-		terms.add(1.0);
+		terms.add((float) 1.0);
 		xPowers.add(1);
 		
 		terms.add(d);
@@ -236,7 +236,7 @@ final class Polynomial{
 		this.combineLikeTerms();
 	}
 	
-	public ArrayList<Double> getTermSet(){
+	public ArrayList<Float> getTermSet(){
 		return terms;
 	}
 	
@@ -244,7 +244,7 @@ final class Polynomial{
 		return xPowers;
 	}
 	
-	public double getTerm(int index){
+	public float getTerm(int index){
 		return terms.get(index);
 	}
 	
@@ -252,7 +252,7 @@ final class Polynomial{
 		return xPowers.get(index);
 	}
 	
-	public void addTerm(double t){
+	public void addTerm(Float t){
 		terms.add(t);
 		xPowers.add(0);
 	}
