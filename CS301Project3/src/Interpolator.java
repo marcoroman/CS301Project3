@@ -20,40 +20,7 @@ public class Interpolator{
 		createDividedDifferenceTable(dividedDifferenceTable);
 		String polynomial = generatePolynomial(dividedDifferenceTable);
 		
-		/*****************************Beginning Polynomial Separation********************************/
-		System.out.println(polynomial);
-		
-		polynomial = polynomial.substring(7, polynomial.length());
-		String[] p = polynomial.split("\\s\\+\\s|\\)\\s");
-		System.out.println(Arrays.toString(p));
-		
-		ArrayList<String[]> stringPolynomials = new ArrayList<>();
-		ArrayList<ArrayList<Double>> polynomials = new ArrayList<>();
-		
-		for(int i = 0; i < p.length; ++i){
-			stringPolynomials.add(p[i].split("\\)\\(|\\(|\\)"));
-			//System.out.println(Arrays.toString((polynomials.get(polynomials.size() - 1))));
-			polynomials.add(new ArrayList<>());
-			
-			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
-				if(!stringPolynomials.get(i)[j].contains("x")){
-					polynomials.get(polynomials.size() - 1).add(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", "")));
-				}else if(stringPolynomials.get(i)[j].contains("-")){
-					polynomials.get(polynomials.size() - 1).add(1.0);
-					polynomials.get(polynomials.size() - 1).add(-1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1]));
-				}else if(stringPolynomials.get(i)[j].contains("+")){
-					polynomials.get(polynomials.size() - 1).add(1.0);
-					polynomials.get(polynomials.size() - 1).add(Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1]));
-				}else
-					polynomials.get(polynomials.size() - 1).add(1.0);
-			}
-		}
-		
-		for(int i = 0; i < polynomials.size(); ++i){
-			System.out.println(Arrays.toString(polynomials.get(i).toArray()));
-		}
-		
-		//displayTable(dividedDifferenceTable);
+		displayTable(dividedDifferenceTable);
 		
 		//Display of interpolating polynomial to output file
 		writer.println("\nInterpolating polynomial is:");
@@ -61,6 +28,59 @@ public class Interpolator{
 						
 		//Display of simplified interpolating polynomial to output file
 		writer.println("\nSimplified polynomial is:");
+		
+		/*****************************Beginning Polynomial Separation********************************/
+		polynomial = polynomial.substring(7, polynomial.length());
+		String[] p = polynomial.split("\\s\\+\\s|\\)\\s");
+		
+		ArrayList<String[]> stringPolynomials = new ArrayList<>();
+		ArrayList<ArrayList<Polynomial>> polynomialLists = new ArrayList<>();
+		
+		for(int i = 0; i < p.length; ++i){
+			
+			stringPolynomials.add(p[i].split("\\)\\(|\\(|\\)"));
+			polynomialLists.add(new ArrayList<>());
+			
+			for(int j = 0; j < stringPolynomials.get(i).length; ++j){
+				if(!stringPolynomials.get(i)[j].contains("x")){
+					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(Double.parseDouble(stringPolynomials.get(i)[j].replaceAll("\\s", ""))));
+				}else if(stringPolynomials.get(i)[j].contains("-")){
+					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, -1.0 * Double.parseDouble(stringPolynomials.get(i)[j].split("-")[1])));
+				}else if(stringPolynomials.get(i)[j].contains("+")){
+					polynomialLists.get(polynomialLists.size() -1).add(new Polynomial(1, Double.parseDouble(stringPolynomials.get(i)[j].split("+")[1])));
+				}else{
+					polynomialLists.get(polynomialLists.size() - 1).add(new Polynomial(1));
+				}
+			}
+			
+			Polynomial product;
+			
+			//Multiplying polynomial clusters
+			while(polynomialLists.get(i).size() > 1){
+				product = new Polynomial();
+				
+				product = polynomialLists.get(i).get(0).multiply(polynomialLists.get(i).get(1));
+				
+				polynomialLists.get(i).remove(1);
+				polynomialLists.get(i).remove(0);
+				polynomialLists.get(i).add(product);
+			}
+		}
+		
+		ArrayList<Polynomial> polynomials = new ArrayList<>();
+		
+		for(int i = 0; i < polynomialLists.size(); ++i){
+			polynomials.add(polynomialLists.get(i).get(0));
+		}
+		
+		//Add polynomial clusters
+		while(polynomials.size() > 1){
+			polynomials.add(new Polynomial(polynomials.get(0), polynomials.get(1)));
+			polynomials.remove(1);
+			polynomials.remove(0);
+		}
+		
+		writer.println(polynomials.get(0));
 				
 		writer.close();
 	}
@@ -164,9 +184,53 @@ final class Polynomial{
 	private ArrayList<Double> terms;
 	private ArrayList<Integer> xPowers;
 	
+	//Default constructor
 	public Polynomial(){
 		terms = new ArrayList<>();
 		xPowers = new ArrayList<>();
+	}
+	
+	//Constructor for constants
+	public Polynomial(Double d){
+		terms = new ArrayList<>();
+		xPowers = new ArrayList<>();
+		
+		terms.add(d);
+		xPowers.add(0);
+	}
+	
+	//Constructor for x
+	public Polynomial(int p){
+		terms = new ArrayList<>();
+		xPowers = new ArrayList<>();
+		
+		terms.add(1.0);
+		xPowers.add(p);
+	}
+	
+	//Constructor for first order polynomial
+	public Polynomial(int n, Double d){
+		terms = new ArrayList<>();
+		xPowers = new ArrayList<>();
+		
+		terms.add(1.0);
+		xPowers.add(1);
+		
+		terms.add(d);
+		xPowers.add(0);
+	}
+	
+	//Constructor for the sum of two polynomials
+	public Polynomial(Polynomial p1, Polynomial p2){
+		terms = new ArrayList<>();
+		xPowers = new ArrayList<>();
+		
+		terms.addAll(p1.getTermSet());
+		xPowers.addAll(p1.getPowerSet());
+		terms.addAll(p2.getTermSet());
+		xPowers.addAll(p2.getPowerSet());
+		
+		this.combineLikeTerms();
 	}
 	
 	public ArrayList<Double> getTermSet(){
@@ -237,8 +301,10 @@ final class Polynomial{
 					str += " + ";
 				}
 				
-				if(Math.abs(terms.get(i)) != 1)
+				if(Math.abs(terms.get(i)) != 1 && i != 0){
 					str += Math.abs(terms.get(i));
+				}else
+					str += terms.get(i);
 				
 				if(xPowers.get(i) > 0){
 					if(xPowers.get(i) == 1){
