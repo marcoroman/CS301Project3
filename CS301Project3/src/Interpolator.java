@@ -115,16 +115,16 @@ public class Interpolator{
 			}
 			
 			if(table.get(i).get(0) != 0){
-				polynomial += Math.abs(table.get(i).get(0));
+				polynomial += decimalFormat.format(Math.abs(table.get(i).get(0)));
 			
 				//Generating appropriate x values
 				for(int j = 0; j < i - 1; ++j){
 					if(table.get(0).get(j) == 0){
 						polynomial += "x";
 					}else if(table.get(0).get(j) > 0){
-						polynomial += "(x-" + Math.abs(table.get(0).get(j)) + ")";
+						polynomial += "(x-" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
 					}else{
-						polynomial += "(x+" + Math.abs(table.get(0).get(j)) + ")";
+						polynomial += "(x+" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
 					}
 				}
 			}
@@ -184,6 +184,7 @@ public class Interpolator{
 final class Polynomial{
 	private ArrayList<Double> terms;
 	private ArrayList<Integer> xPowers;
+	static DecimalFormat decimalFormat = new DecimalFormat("#.###");
 	
 	//Default constructor
 	public Polynomial(){
@@ -310,9 +311,9 @@ final class Polynomial{
 				//x-coefficient of 1 not displayed (trivial)
 				if(!(Math.abs(terms.get(i)) == 1 && xPowers.get(i) == 1)){
 					if(i != 0){
-						polyString += Math.abs(terms.get(i));
+						polyString += decimalFormat.format(Math.abs(terms.get(i)));
 					}else if(i == 0){
-						polyString += terms.get(i);
+						polyString += decimalFormat.format(terms.get(i));
 					}
 				}
 				
