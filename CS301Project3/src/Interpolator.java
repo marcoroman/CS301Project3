@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /*
@@ -301,9 +302,9 @@ final class Polynomial{
 			if(terms.get(i) != 0){
 				
 				//Determining appropriate arithmetic operation
-				if(terms.get(i) < 0 && i != 0){
+				if(terms.get(i) < 0 && i != 0 && terms.get(i - 1) != 0){
 					polyString += " - ";
-				}else if(terms.get(i) > 0 && i != 0){
+				}else if(terms.get(i) > 0 && i != 0 && terms.get(i - 1) != 0){
 					polyString += " + ";
 				}
 				
