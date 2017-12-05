@@ -8,4 +8,4 @@ Interpolating polynomial is:
 f(x) = 3 + 0.5(x-1) + 0.3333(x-1)(x-1.5) - 1.9967(x-1)(x-1.5)x
 
 Simplified polynomial is:
-f(x) = 3 - 3.328x + 5.325x^2 - 1.997x^3
+f(x) = -1.997x^3 + 5.325x^2 - 3.328x + 3

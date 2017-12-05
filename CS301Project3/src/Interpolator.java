@@ -3,6 +3,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Scanner;
 
 /*
@@ -186,6 +188,7 @@ public class Interpolator{
 		writer.println("\nSimplified polynomial is:");
 				
 		//Final consolidated polynomial output to text file
+		additiveCluster.get(0).sort();
 		writer.println(additiveCluster.get(0));
 	}
 }
@@ -193,74 +196,60 @@ public class Interpolator{
 //Polynomial class used for the construction of simplified polynomial
 //Handles multiplication and addition functionality
 final class Polynomial{
-	private ArrayList<Float> terms;
-	private ArrayList<Integer> xPowers;
+	//private ArrayList<Float> terms;
+	//private ArrayList<Integer> xPowers;
+	private ArrayList<Term> terms;
 	static DecimalFormat decimalFormat = new DecimalFormat("#.###");
 	
 	//Default constructor
 	public Polynomial(){
 		terms = new ArrayList<>();
-		xPowers = new ArrayList<>();
 	}
 	
 	//Constructor for constants
 	public Polynomial(Float d){
 		terms = new ArrayList<>();
-		xPowers = new ArrayList<>();
 		
-		terms.add(d);
-		xPowers.add(0);
+		terms.add(new Term(d, 0));
 	}
 	
 	//Constructor for first order polynomial
 	//of form (x+c) or (x-c)
 	public Polynomial(int n, Float d){
 		terms = new ArrayList<>();
-		xPowers = new ArrayList<>();
 		
-		terms.add((float) 1.0);
-		xPowers.add(1);
-		
-		terms.add(d);
-		xPowers.add(0);
+		terms.add(new Term((float) 1.0, 1));
+		terms.add(new Term(d, 0));
 	}
 	
 	//Constructor for the sum of two polynomials
 	public Polynomial(Polynomial p1, Polynomial p2){
 		terms = new ArrayList<>();
-		xPowers = new ArrayList<>();
 		
 		terms.addAll(p1.getTermSet());
-		xPowers.addAll(p1.getPowerSet());
 		terms.addAll(p2.getTermSet());
-		xPowers.addAll(p2.getPowerSet());
 		
 		this.combineLikeTerms();
 	}
 	
-	public ArrayList<Float> getTermSet(){
+	public ArrayList<Term> getTermSet(){
 		return terms;
 	}
 	
-	public ArrayList<Integer> getPowerSet(){
-		return xPowers;
-	}
-	
 	public float getTerm(int index){
-		return terms.get(index);
+		return terms.get(index).getTerm();
 	}
 	
 	public int getPower(int index){
-		return xPowers.get(index);
+		return terms.get(index).getPower();
 	}
 	
 	public void addTerm(Float t){
-		terms.add(t);
-		xPowers.add(0);
+		terms.add(new Term(t, 0));
 	}
 	
 	public void setPower(int index, int p){
-		xPowers.set(index, p);
+		terms.get(index).setPower(p);
 	}
 	
 	//Returns a Polynomial product
@@ -270,8 +259,8 @@ final class Polynomial{
 		//Generating product polynomial 
 		for(int i = 0; i < terms.size(); ++i){
 			for(int j = 0; j < p2.getTermSet().size(); ++j){
-				product.addTerm(terms.get(i) * p2.getTerm(j));
-				product.setPower(j + (p2.getTermSet().size() * i), xPowers.get(i) + p2.getPower(j));
+				product.addTerm(this.getTerm(i) * p2.getTerm(j));
+				product.setPower(j + (p2.getTermSet().size() * i), this.getPower(i) + p2.getPower(j));
 			}
 		}
 		
@@ -285,14 +274,20 @@ final class Polynomial{
 		for(int i = 0; i < terms.size(); ++i){
 			for(int j = 0; j < terms.size(); ++j){
 				if(i != j){
-					if(xPowers.get(i) == xPowers.get(j)){
-						terms.set(i, terms.get(i) + terms.get(j));
+					if(this.getPower(i) == this.getPower(j)){
+						terms.get(i).setTerm(this.getTerm(i) + this.getTerm(j));
 						terms.remove(j);
-						xPowers.remove(j);
 					}
 				}
 			}
 		}
+	}
+	
+	//Sorts terms in order of decreasing powers of x
+	public void sort(){
+		Comparator<Term> termSort = new TermSort();
+		
+		Collections.sort(terms, termSort);
 	}
 	
 	//Returns full formatted polynomial as a string
@@ -301,34 +296,77 @@ final class Polynomial{
 		
 		//Constructing polynomial based on coefficients and powers of x
 		for(int i = 0; i < terms.size(); ++i){
-			if(terms.get(i) != 0){
+			if(this.getTerm(i) != 0){
 				
 				//Determining appropriate arithmetic operation
-				if(terms.get(i) < 0 && i != 0 && terms.get(i - 1) != 0){
+				if(this.getTerm(i) < 0 && i != 0 && this.getTerm(i - 1) != 0){
 					polyString += " - ";
-				}else if(terms.get(i) > 0 && i != 0 && terms.get(i - 1) != 0){
+				}else if(this.getTerm(i) > 0 && i != 0 && this.getTerm(i - 1) != 0){
 					polyString += " + ";
 				}
 				
 				//x-coefficient of 1 not displayed (trivial)
-				if(!(Math.abs(terms.get(i)) == 1 && xPowers.get(i) > 0)){
+				if(!(Math.abs(this.getTerm(i)) == 1 && this.getPower(i) > 0)){
 					if(i != 0){
-						polyString += decimalFormat.format(Math.abs(terms.get(i)));
+						polyString += decimalFormat.format(Math.abs(this.getTerm(i)));
 					}else if(i == 0){
-						polyString += decimalFormat.format(terms.get(i));
+						polyString += decimalFormat.format(this.getTerm(i));
 					}
 				}
 				
 				//Appending appropriate power of x
-				if(xPowers.get(i) > 0){
-					if(xPowers.get(i) == 1){
+				if(this.getPower(i) > 0){
+					if(this.getPower(i) == 1){
 						polyString += "x";
 					}else
-						polyString += "x^" + xPowers.get(i);
+						polyString += "x^" + this.getPower(i);
 				}
 			}
 		}
 		
 		return polyString;
+	}
+}
+
+//Representation of each term in the polynomial class
+//Encapsulates coefficient and power of x
+final class Term{
+	private Float term;
+	private int xPower;
+	
+	public Term(Float t, int p){
+		term = t;
+		xPower = p;
+	}
+	
+	public float getTerm(){
+		return term;
+	}
+	
+	public int getPower(){
+		return xPower;
+	}
+	
+	public void setTerm(Float t){
+		term = t;
+	}
+	
+	public void setPower(int p){
+		xPower = p;
+	}
+}
+
+//Comparator object used to sort polynomials in order of decreasing powers
+class TermSort implements Comparator<Term>{
+	public int compare(Term t1, Term t2){
+		if(t1.getPower() > t2.getPower()){
+			return -1;
+		}
+		
+		if(t1.getPower() < t2.getPower()){
+			return 1;
+		}
+		
+		return 0;
 	}
 }
