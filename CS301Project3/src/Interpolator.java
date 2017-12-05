@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,35 +9,42 @@ import java.util.Scanner;
 /*
  * This class generates an interpolating polynomial based on input read from a file
  * The polynomial is generated via Newton's divided difference method and is
- * output to a text file in raw and simplified form.
+ * output to the console in raw and simplified form.
  * */
 public class Interpolator{
 	static DecimalFormat decimalFormat = new DecimalFormat("#.####");
 	static File outputFile = new File("output.txt");
-	static PrintWriter writer;
 	
 	public static void main(String[] args) throws FileNotFoundException{
 		
-		writer = new PrintWriter(outputFile);
+		Scanner reader = new Scanner(System.in);
+		
+		//Prompting user for valid input file name and checking whether the file exists
+		System.out.print("Enter name of a valid input file: ");
+		String fileName = reader.nextLine();
+		
+		while(!(new File(fileName).exists())){
+			System.out.print("\nNo such file found\nEnter a valid file name: ");
+			fileName = reader.nextLine();
+		}
+		
+		reader.close();
 		
 		//Generating the divided differences based on input data
-		ArrayList<ArrayList<Float>> dividedDifferenceTable = createDividedDifferenceTable();
+		//Input file determined by value passed into argument
+		ArrayList<ArrayList<Float>> dividedDifferenceTable = createDividedDifferenceTable(fileName);
 		displayTable(dividedDifferenceTable);
 		
 		generatePolynomials(dividedDifferenceTable);
-				
-		writer.close();
-		
-		System.out.println("Output written to output.txt");
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
 	//Generated based on provided input file
-	public static ArrayList<ArrayList<Float>> createDividedDifferenceTable() throws FileNotFoundException{
+	public static ArrayList<ArrayList<Float>> createDividedDifferenceTable(String fileName) throws FileNotFoundException{
 		
 		ArrayList<ArrayList<Float>> table = new ArrayList<>();
 		
-		File inputFile = new File("input.txt");
+		File inputFile = new File(fileName);
 		Scanner reader = new Scanner(inputFile);
 		
 		ArrayList<Float> data = new ArrayList<>();
@@ -80,36 +86,36 @@ public class Interpolator{
 		return table;
 	}
 	
-	//Prints the formatted divided difference table to an output file
+	//Prints the formatted divided difference table to console
 	public static void displayTable(ArrayList<ArrayList<Float>> table) throws FileNotFoundException{
 		
-		//Formatted display of divided difference table to output file
-		writer.printf("%-15s%-15s", "x", "fx");
+		//Formatted display of divided difference table to console
+		System.out.printf("%-15s%-15s", "x", "fx");
 				
 		String header = " , ";
 		
 		//Printing appropriate column headers for DD table
 		for(int i = 2; i < table.size(); ++i){
-			writer.printf("%-15s", "f[" + header + "]");
+			System.out.printf("%-15s", "f[" + header + "]");
 			header += ", ";
 		}
 				
-		writer.println();
+		System.out.println();
 				
 		//Printing formatted values for DD table
 		for(int i = 0; i < table.get(0).size(); ++i){
 			for(int j = 0; j < table.size(); ++j){
 				if(table.get(j).size() > i){
-					writer.printf("%-15s", decimalFormat.format(table.get(j).get(i)));
+					System.out.printf("%-15s", decimalFormat.format(table.get(j).get(i)));
 				}
 			}
 					
-			writer.println();
+			System.out.println();
 		}
 	}
 	
 	//Original and simplified polynomials generated simultaneously
-	//Original polynomial is stored as a string and then printed to output file
+	//Original polynomial is stored as a string and then printed to console
 	//Simplified polynomial constructed through lists of polynomials multiplied then added together
 	public static void generatePolynomials(ArrayList<ArrayList<Float>> table){
 		
@@ -182,16 +188,16 @@ public class Interpolator{
 			additiveCluster.remove(0);
 		}
 		
-		//Display of original interpolating polynomial to output file
-		writer.println("\nInterpolating polynomial is:");
-		writer.println(originalPolynomial);
+		//Display of original interpolating polynomial to console
+		System.out.println("\nInterpolating polynomial is:");
+		System.out.println(originalPolynomial);
 								
-		//Display of simplified interpolating polynomial to output file
-		writer.println("\nSimplified polynomial is:");
+		//Display of simplified interpolating polynomial to console
+		System.out.println("\nSimplified polynomial is:");
 				
-		//Final consolidated polynomial output to text file
+		//Final consolidated polynomial output to console
 		additiveCluster.get(0).sort();
-		writer.println(additiveCluster.get(0));
+		System.out.println(additiveCluster.get(0));
 	}
 }
 
