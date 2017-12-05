@@ -299,9 +299,9 @@ final class Polynomial{
 			if(this.getTerm(i) != 0){
 				
 				//Determining appropriate arithmetic operation
-				if(this.getTerm(i) < 0 && i != 0 && this.getTerm(i - 1) != 0){
+				if(this.getTerm(i) < 0 && polyString.length() != 7){
 					polyString += " - ";
-				}else if(this.getTerm(i) > 0 && i != 0 && this.getTerm(i - 1) != 0){
+				}else if(this.getTerm(i) > 0 && polyString.length() != 7){
 					polyString += " + ";
 				}
 				
