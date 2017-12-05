@@ -18,26 +18,21 @@ public class Interpolator{
 	public static void main(String[] args) throws FileNotFoundException{
 		
 		writer = new PrintWriter(outputFile);
-		ArrayList<ArrayList<Float>> dividedDifferenceTable = new ArrayList<>();
 		
 		//Generating the divided differences based on input data
-		createDividedDifferenceTable(dividedDifferenceTable);
+		ArrayList<ArrayList<Float>> dividedDifferenceTable = createDividedDifferenceTable();
 		displayTable(dividedDifferenceTable);
 		
-		//Display of interpolating polynomial to output file
-		writer.println("\nInterpolating polynomial is:");
-		generatePolynomial(dividedDifferenceTable);
-						
-		//Display of simplified interpolating polynomial to output file
-		writer.println("\nSimplified polynomial is:");
-		generateSimplifiedPolynomial(dividedDifferenceTable);
+		generatePolynomials(dividedDifferenceTable);
 				
 		writer.close();
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
 	//Generated based on provided input file
-	public static void createDividedDifferenceTable(ArrayList<ArrayList<Float>> table) throws FileNotFoundException{
+	public static ArrayList<ArrayList<Float>> createDividedDifferenceTable() throws FileNotFoundException{
+		
+		ArrayList<ArrayList<Float>> table = new ArrayList<>();
 		
 		File inputFile = new File("input.txt");
 		Scanner reader = new Scanner(inputFile);
@@ -70,6 +65,8 @@ public class Interpolator{
 				table.get(table.size() - 1).add((table.get(i + 1).get(j + 1) - table.get(i + 1).get(j)) / 
 						(table.get(0).get(j + (i + 1)) - table.get(0).get(j)));
 		}
+		
+		return table;
 	}
 	
 	//Prints the formatted divided difference table to an output file
@@ -100,78 +97,87 @@ public class Interpolator{
 		}
 	}
 	
-	//Storing the interpolating polynomial (before simplification) as a string
-	public static void generatePolynomial(ArrayList<ArrayList<Float>> table){
-		String polynomial = "f(x) = ";
+	//Original and simplified polynomials generated simultaneously
+	//Original polynomial is stored as a string and then printed to output file
+	//Simplified polynomial constructed through lists of polynomials multiplied then added together
+	public static void generatePolynomials(ArrayList<ArrayList<Float>> table){
 		
+		String originalPolynomial = "f(x) = ";
+		
+		/*
+		 * multiplicativeCluster list stores new Polynomial objects created from difference table values
+		 * 		each cluster is consolidated by multiplication
+		 * Each consolidated cluster is added to additiveCluster; this list of polynomials
+		 * 		is consolidated by addition
+		 */
+		ArrayList<Polynomial> multiplicativeCluster;
+		ArrayList<Polynomial> additiveCluster = new ArrayList<>();
+				
+		//Generating polynomial clusters to be multiplied together
 		for(int i = 1; i < table.size(); ++i){
 			
+			/***************************************Original Polynomial***************************************/
 			//Determining appropriate arithmetic sign between terms
 			if(table.get(i).get(0) < 0 && i != 1)
-				polynomial += " - ";
+				originalPolynomial += " - ";
 			else if(table.get(i).get(0) > 0 && i != 1){
-				polynomial += " + ";
+				originalPolynomial += " + ";
 			}
 			
 			if(table.get(i).get(0) != 0){
 				
 				//Coefficient of 1 not displayed unless it is a constant
 				if(table.get(i).get(0) != 1 || i == 1)
-					polynomial += decimalFormat.format(Math.abs(table.get(i).get(0)));
+					originalPolynomial += decimalFormat.format(Math.abs(table.get(i).get(0)));
 			
 				//Generating appropriate x values
 				for(int j = 0; j < i - 1; ++j){
 					if(table.get(0).get(j) == 0){
-						polynomial += "x";
+						originalPolynomial += "x";
 					}else if(table.get(0).get(j) > 0){
-						polynomial += "(x-" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
+						originalPolynomial += "(x-" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
 					}else{
-						polynomial += "(x+" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
+						originalPolynomial += "(x+" + decimalFormat.format(Math.abs(table.get(0).get(j))) + ")";
 					}
 				}
 			}
-		}
-		
-		writer.println(polynomial);
-	}
-	
-	//Generating the simplified polynomial based on divided difference table
-	public static void generateSimplifiedPolynomial(ArrayList<ArrayList<Float>> table){
-		
-		//multiplicativeCluster list stores new Polynomial objects created from difference table values
-		//	each cluster is consolidated by multiplication
-		//Each consolidated cluster is added to additiveCluster; this list of polynomials
-		//	is consolidated by addition
-		ArrayList<Polynomial> multiplicativeCluster;
-		ArrayList<Polynomial> additiveCluster = new ArrayList<>();
-		
-		//Generating polynomial clusters to be multiplied together
-		for(int i = 1; i < table.size(); ++i){
+			/***************************************************************************************************/
+			
+			/***************************************Simplified Polynomial***************************************/
 			multiplicativeCluster = new ArrayList<>();
-			
+					
 			multiplicativeCluster.add(new Polynomial(table.get(i).get(0)));
-			
+					
 			//Creating polynomials from input values of x
 			for(int j = 0; j < i - 1; ++j)
 				multiplicativeCluster.add(new Polynomial(1, (float) -1.0 * table.get(0).get(j)));
-			
+					
 			//Consolidating polynomials by multiplying polynomial clusters
 			while(multiplicativeCluster.size() > 1){
 				multiplicativeCluster.add(multiplicativeCluster.get(0).multiply(multiplicativeCluster.get(1)));
 				multiplicativeCluster.remove(1);
 				multiplicativeCluster.remove(0);
 			}
-			
+					
 			additiveCluster.add(multiplicativeCluster.get(0));
+			
+			/***************************************************************************************************/
 		}
-		
-		//Consolidating polynomials by adding polynomial clusters
+				
+		//Consolidating polynomials by adding polynomial clusters (simplified form)
 		while(additiveCluster.size() > 1){
 			additiveCluster.add(new Polynomial(additiveCluster.get(0), additiveCluster.get(1)));
 			additiveCluster.remove(1);
 			additiveCluster.remove(0);
 		}
 		
+		//Display of original interpolating polynomial to output file
+		writer.println("\nInterpolating polynomial is:");
+		writer.println(originalPolynomial);
+								
+		//Display of simplified interpolating polynomial to output file
+		writer.println("\nSimplified polynomial is:");
+				
 		//Final consolidated polynomial output to text file
 		writer.println(additiveCluster.get(0));
 	}
