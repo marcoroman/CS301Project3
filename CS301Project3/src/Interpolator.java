@@ -22,12 +22,11 @@ public class Interpolator{
 		
 		//Generating the divided differences based on input data
 		createDividedDifferenceTable(dividedDifferenceTable);
-		
 		displayTable(dividedDifferenceTable);
 		
 		//Display of interpolating polynomial to output file
 		writer.println("\nInterpolating polynomial is:");
-		writer.println(generatePolynomial(dividedDifferenceTable));
+		generatePolynomial(dividedDifferenceTable);
 						
 		//Display of simplified interpolating polynomial to output file
 		writer.println("\nSimplified polynomial is:");
@@ -102,7 +101,7 @@ public class Interpolator{
 	}
 	
 	//Storing the interpolating polynomial (before simplification) as a string
-	public static String generatePolynomial(ArrayList<ArrayList<Float>> table){
+	public static void generatePolynomial(ArrayList<ArrayList<Float>> table){
 		String polynomial = "f(x) = ";
 		
 		for(int i = 1; i < table.size(); ++i){
@@ -133,7 +132,7 @@ public class Interpolator{
 			}
 		}
 		
-		return polynomial;
+		writer.println(polynomial);
 	}
 	
 	//Generating the simplified polynomial based on divided difference table
@@ -198,15 +197,6 @@ final class Polynomial{
 		
 		terms.add(d);
 		xPowers.add(0);
-	}
-	
-	//Constructor for x
-	public Polynomial(int p){
-		terms = new ArrayList<>();
-		xPowers = new ArrayList<>();
-		
-		terms.add((float) 1.0);
-		xPowers.add(p);
 	}
 	
 	//Constructor for first order polynomial
