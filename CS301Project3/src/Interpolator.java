@@ -28,6 +28,8 @@ public class Interpolator{
 		generatePolynomials(dividedDifferenceTable);
 				
 		writer.close();
+		
+		System.out.println("Output written to output.txt");
 	}
 	
 	//Divided difference table stored as an ArrayList of ArrayLists
