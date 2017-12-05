@@ -56,14 +56,21 @@ public class Interpolator{
 		table.add(new ArrayList<Float>());
 		table.get(1).addAll(0, data.subList(data.size() / 2, data.size()));
 		
+		ArrayList<Float> prev;
+		ArrayList<Float> newData;
+		
 		//Iteratively filling in the table
 		for(int i = 0; i < table.get(0).size() - 1; ++i){
-			table.add(new ArrayList<Float>());
+			
+			//prev list contains values calculated on previous iteration of algorithm
+			prev = table.get(i + 1);
+			newData = new ArrayList<>();
 			
 			//Divided difference calculation
 			for(int j = 0; j < table.get(0).size() - (i + 1); ++j)
-				table.get(table.size() - 1).add((table.get(i + 1).get(j + 1) - table.get(i + 1).get(j)) / 
-						(table.get(0).get(j + (i + 1)) - table.get(0).get(j)));
+				newData.add((prev.get(j + 1) - prev.get(j)) / (table.get(0).get(j + (i + 1)) - table.get(0).get(j)));
+			
+			table.add(newData);
 		}
 		
 		return table;
