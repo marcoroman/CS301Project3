@@ -199,7 +199,6 @@ final class Polynomial{
 	//private ArrayList<Float> terms;
 	//private ArrayList<Integer> xPowers;
 	private ArrayList<Term> terms;
-	static DecimalFormat decimalFormat = new DecimalFormat("#.###");
 	
 	//Default constructor
 	public Polynomial(){
@@ -236,7 +235,7 @@ final class Polynomial{
 		return terms;
 	}
 	
-	public float getTerm(int index){
+	public float getCoefficient(int index){
 		return terms.get(index).getTerm();
 	}
 	
@@ -259,7 +258,7 @@ final class Polynomial{
 		//Generating product polynomial 
 		for(int i = 0; i < terms.size(); ++i){
 			for(int j = 0; j < p2.getTermSet().size(); ++j){
-				product.addTerm(this.getTerm(i) * p2.getTerm(j));
+				product.addTerm(this.getCoefficient(i) * p2.getCoefficient(j));
 				product.setPower(j + (p2.getTermSet().size() * i), this.getPower(i) + p2.getPower(j));
 			}
 		}
@@ -275,7 +274,7 @@ final class Polynomial{
 			for(int j = 0; j < terms.size(); ++j){
 				if(i != j){
 					if(this.getPower(i) == this.getPower(j)){
-						terms.get(i).setTerm(this.getTerm(i) + this.getTerm(j));
+						terms.get(i).setTerm(this.getCoefficient(i) + this.getCoefficient(j));
 						terms.remove(j);
 					}
 				}
@@ -296,31 +295,20 @@ final class Polynomial{
 		
 		//Constructing polynomial based on coefficients and powers of x
 		for(int i = 0; i < terms.size(); ++i){
-			if(this.getTerm(i) != 0){
+			if(this.getCoefficient(i) != 0){
 				
 				//Determining appropriate arithmetic operation
-				if(this.getTerm(i) < 0 && polyString.length() != 7){
+				if(this.getCoefficient(i) < 0 && polyString.length() != 7){
 					polyString += " - ";
-				}else if(this.getTerm(i) > 0 && polyString.length() != 7){
+				}else if(this.getCoefficient(i) > 0 && polyString.length() != 7){
 					polyString += " + ";
 				}
 				
-				//x-coefficient of 1 not displayed (trivial)
-				if(!(Math.abs(this.getTerm(i)) == 1 && this.getPower(i) > 0)){
-					if(i != 0){
-						polyString += decimalFormat.format(Math.abs(this.getTerm(i)));
-					}else if(i == 0){
-						polyString += decimalFormat.format(this.getTerm(i));
-					}
-				}
+				//Handling case in which first term is negative
+				if(polyString.length() == 7 && this.getCoefficient(i) < 0)
+					polyString += "-";
 				
-				//Appending appropriate power of x
-				if(this.getPower(i) > 0){
-					if(this.getPower(i) == 1){
-						polyString += "x";
-					}else
-						polyString += "x^" + this.getPower(i);
-				}
+				polyString += this.terms.get(i);
 			}
 		}
 		
@@ -331,6 +319,8 @@ final class Polynomial{
 //Representation of each term in the polynomial class
 //Encapsulates coefficient and power of x
 final class Term{
+	
+	static DecimalFormat decimalFormat = new DecimalFormat("#.###");
 	private Float term;
 	private int xPower;
 	
@@ -353,6 +343,23 @@ final class Term{
 	
 	public void setPower(int p){
 		xPower = p;
+	}
+	
+	//Returns formatted polynomial term (Cx^#)
+	public String toString(){
+		String stringTerm = "";
+		
+		if(xPower == 0 || Math.abs(term) != 1)
+			stringTerm += decimalFormat.format(Math.abs(term));
+		
+		if(xPower != 0){
+			if(xPower == 1){
+				stringTerm += "x";
+			}else
+				stringTerm += "x^" + xPower;
+		}
+		
+		return stringTerm;
 	}
 }
 
